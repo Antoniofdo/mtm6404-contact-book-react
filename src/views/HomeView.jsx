@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import db from "../db";
 import SearchBar from "../components/SearchBar";
 import ContactList from "../components/ContactList";
@@ -9,9 +9,7 @@ function HomeView() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchContacts = async () => {
-      const querySnapshot = await getDocs(collection(db, "contacts"));
-
+    const unsubscribe = onSnapshot(collection(db, "contacts"), (querySnapshot) => {
       const contactsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
@@ -22,9 +20,9 @@ function HomeView() {
       );
 
       setContacts(contactsData);
-    };
+    });
 
-    fetchContacts();
+    return () => unsubscribe();
   }, []);
 
   const filteredContacts = contacts.filter((contact) => {
